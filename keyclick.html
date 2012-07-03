@@ -1,0 +1,163 @@
+
+<div>
+text
+<a href="http://google.com/">text</a>
+<a href="http://reddit.com/">text2</a>
+
+</div>
+
+
+<script type="text/javascript">
+
+var searchText = "";
+var inputElements = document.getElementsByTagName('input');
+var linkElements = document.getElementsByTagName('a');
+var matchingElements = [];
+var targetCounter = 0;
+var targetElement;
+var targetLeft = 0;
+var targetTop = 0;
+var tagText = "";
+var pattern;
+var highlight = document.createElement('div');
+var helper = document.createElement('span');
+
+document.body.appendChild(highlight);
+highlight.style.width = '10px';
+highlight.style.height = '10px';
+highlight.style.position = 'absolute';
+highlight.style.backgroundColor = 'yellow';
+highlight.style.border = '3px solid orange';
+highlight.style.borderRadius = '5px';
+highlight.style.MozBorderRadius = '5px';
+highlight.style.opacity = '0.6';
+highlight.style.MozOpacity = '0.6';
+highlight.style.zIndex = '999999999999';
+
+document.body.appendChild(helper);
+helper.style.position = 'fixed';
+helper.style.left = '10px';
+helper.style.bottom = '5px';
+helper.style.border = '1px solid #d5d5d5';
+
+function resetAll() {
+	searchText = '';
+	tagText = '';
+	matchingElements = [];
+	targetElement = null;
+	targetCounter = 0;
+	highlight.style.visibility = 'hidden';
+	helper.innerHTML = '';
+}
+
+function shiftHighlight(target) {
+
+	if(target){
+		highlight.style.left = target.offsetLeft;
+		highlight.style.top = target.offsetTop;
+		highlight.style.width = target.offsetWidth;
+		highlight.style.height = target.offsetHeight;
+
+		/* scroll window to that element */
+		window.scroll(target.offsetLeft+window.innerWidth/2, target.offsetHeight+window.innerHeight/2);
+	}
+	
+}
+
+
+
+document.onkeydown= function(e) {
+	e.keyCode;
+
+	/* escape */
+	if(e.keyCode==27){
+		resetAll();
+	}
+	/* arrow down */
+	else if(e.keyCode==40){
+		if(matchingElements.length>targetCounter-1){
+			targetCounter++;
+			targetElement = matchingElements[targetCounter];
+		}
+		else {
+			targetCounter = 0;
+		}
+	}
+	/* arrow up */
+	else if(e.keyCode==38){
+		if(targetCounter!=0){
+			targetElement--;
+		}
+		else {
+			targetElement = matchingElements[matchingElements.length-1];
+		}
+	}
+
+	try {
+		targetElement = matchingElements[targetCounter];
+		shiftHighlight(targetElement);
+	}
+	catch(err){
+		alert(err.message);
+	}
+	
+
+
+}
+
+document.onkeypress= function(e) {
+
+	e.charCode;
+
+	/* Enter is pressed */
+	if(e.charCode==13){
+
+		if(targetElement){
+			targetElement.click();
+		}
+		else {
+			alert('no links found');
+		}
+
+		resetAll();
+	}
+
+	/* Character pressed */
+	else {
+		matchingElements = [];
+		searchText = searchText+String.fromCharCode(e.charCode).toLowerCase();
+		pattern = new RegExp(searchText);
+
+		helper.innerHTML = searchText;
+		highlight.style.visibility = 'visible';
+
+		/* Add all elements with matching text to matchingText array */
+		for(el in linkElements){
+			tagText = linkElements[el].innerHTML;
+			if(tagText){ tagText.toLowerCase(); }
+			
+			/* If search string is in tag string */
+			if(pattern.test(tagText)){
+				matchingElements.push(linkElements[el]);
+			}
+		}
+
+		/* Set target element to first matching element, if any */
+		if(matchingElements.length>0) { /* at least one element matches */
+			targetElement = matchingElements[targetCounter]; /* TODO: add in check for this*/
+			shiftHighlight(targetElement);
+		}
+		else {
+			targetElement = null;
+			highlight.style.visibility = 'hidden';
+		}
+
+
+
+	}
+}
+
+
+
+
+</script>

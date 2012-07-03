@@ -1,0 +1,15 @@
+{
+	"name": "Keyclick",
+	"version": "1.0",
+	"description": "Ditch your mouse! Click by typing.",
+	"browser_action": {
+		"default_icon": "icon.png"
+	},
+	"permissions": [ "http://*/*", "https://*/*", "tabs"],
+	"content_scripts": [{
+		"matches": ["http://*/*", "https://*/*"],
+		"exclude_matches": ["http://google.com/*", "https://google.com/*", "http://www.google.com/*", "https://www.google.com/*"],
+		"js": ["keyclick.js"]
+	}]
+
+}
