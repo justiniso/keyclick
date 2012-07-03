@@ -1,5 +1,6 @@
 
 var active = true;
+var presses = 0;
 var searchText = "";
 var inputElements = document.getElementsByTagName('input');
 var linkElements = document.getElementsByTagName('a');
@@ -62,15 +63,20 @@ function shiftHighlight(target) {
 
 
 document.onkeydown= function(e) {
-	/* 192 "`~" double pressed to activate */
-	var doubleActivate = 0;
+	/* "`~" double pressed to activate */
 	if(e.keyCode==192){
-
+		if(presses!=0){
+			alert('doubleclick worked');
+			active = true;
+		}
+		else {
+			presses = 1;
+			presses = setTimeout('presses=0;', 300);
+		}
 	}
 
-
 	/* escape or backspace */
-	if(e.keyCode==27 || e.keyCode==8){
+	else if(e.keyCode==27 || e.keyCode==8){
 		resetAll();
 	}
 	/* arrow down */
