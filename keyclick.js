@@ -1,4 +1,5 @@
 
+var active = true;
 var searchText = "";
 var inputElements = document.getElementsByTagName('input');
 var linkElements = document.getElementsByTagName('a');
@@ -61,6 +62,13 @@ function shiftHighlight(target) {
 
 
 document.onkeydown= function(e) {
+	/* 192 "`~" double pressed to activate */
+	var doubleActivate = 0;
+	if(e.keyCode==192){
+
+	}
+
+
 	/* escape or backspace */
 	if(e.keyCode==27 || e.keyCode==8){
 		resetAll();
