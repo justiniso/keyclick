@@ -66,8 +66,15 @@ document.onkeydown= function(e) {
 	/* "`~" double pressed to activate */
 	if(e.keyCode==192){
 		if(presses!=0){
-			alert('doubleclick worked');
-			active = true;
+			/*	deactivate if activated	*/
+			if(active){
+				resetAll();
+				active = false;
+			}
+			/*	activate if deactivated	*/
+			else {
+				active = true;
+			}
 		}
 		else {
 			presses = 1;
@@ -79,8 +86,8 @@ document.onkeydown= function(e) {
 	else if(e.keyCode==27 || e.keyCode==8){
 		resetAll();
 	}
-	/* arrow down */
-	else if(e.keyCode==39){
+	/* arrow right */
+	else if(e.keyCode==39 && active){
 		if(targetCounter>matchingElements.length+1){
 			targetCounter=0;
 		}
@@ -89,8 +96,8 @@ document.onkeydown= function(e) {
 		}
 		targetElement = matchingElements[targetCounter];
 	}
-	/* arrow up */
-	else if(e.keyCode==37){
+	/* arrow left */
+	else if(e.keyCode==37 && active){
 		if(targetCounter>1){
 			targetCounter--;
 		}
@@ -114,7 +121,7 @@ document.onkeydown= function(e) {
 
 document.onkeypress= function(e) {
 	/* Enter is pressed */
-	if(e.charCode==13){
+	if(e.charCode==13 && active){
 
 		if(targetElement){
 			targetElement.click();
@@ -126,8 +133,8 @@ document.onkeypress= function(e) {
 		resetAll();
 	}
 
-	/* Character pressed */
-	else {
+	/* Non-tilda character pressed */
+	else if(e.charCode!=192 && active) {
 		matchingElements = [];
 		searchText = searchText+String.fromCharCode(e.charCode);
 		pattern = new RegExp(searchText, 'i');
