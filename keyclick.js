@@ -48,23 +48,52 @@ function resetAll() {
 }
 
 function shiftHighlight(target) {
-
 	if(target){
-		highlight.style.left = target.offsetLeft.toString()+'px';
-		highlight.style.top = target.offsetTop.toString()+'px';
+		var elPos = findPosition(target);
+		var elTop = elPos['top'].toString()+'px';
+		var elLeft = elPos['left'].toString()+'px';
+
+		highlight.style.top = elTop;
+		highlight.style.left = elLeft;
+		//highlight.style.left = target.offsetLeft.toString()+'px';
+		//highlight.style.top = target.offsetTop.toString()+'px';
 		highlight.style.width = target.offsetWidth.toString()+'px';
 		highlight.style.height = target.offsetHeight.toString()+'px';
 
 		/* scroll window to that element */
-		window.scroll(target.offsetLeft-100, target.offsetTop-target.scrollTop-100);
+		/* NOTE: findPosition returns position as string "0px" */
+		window.scrollTo(parseInt(elLeft)-100, parseInt(elTop)-100);
 	}
 	
 }
 
+/*	Loop up the document until final position in document is found	*/
+function findPosition(node){
+	var curtop = 0;
+	var curleft = 0;
+	var curtopscroll = 0;
+	var curleftscroll = 0;
+	var pos = {
+		'top': 0,
+		'left': 0
+	};
+	if(node && node.offsetParent){
+		do {
+			curtop += node.offsetTop;
+			curleft += node.offsetLeft;
+			// curtopscroll += node.offsetParent ? node.offsetParent.scrollTop : 0;
+			// curleftscroll += node.offSetParent ? node.offsetParent.scrollLeft : 0;
+		} while (node = node.offsetParent);
+
+		pos['top'] = curtop-curtopscroll;
+		pos['left'] = curleft-curleftscroll;
+	}
+	return pos;
+}
 
 
 document.onkeydown= function(e) {
-	/* "`~" double pressed to activate */
+	/* tilda key double pressed to activate */
 	if(e.keyCode==192){
 		if(presses!=0){
 			/*	deactivate if activated	*/
@@ -115,9 +144,6 @@ document.onkeydown= function(e) {
 	catch(err){
 		alert(err.message);
 	}
-	
-
-
 }
 
 document.onkeypress= function(e) {
@@ -145,10 +171,9 @@ document.onkeypress= function(e) {
 
 		/* Add all elements with matching text to matchingText array */
 		for(el in linkElements){
-			tagText = linkElements[el].innerHTML;
-			if(tagText){ tagText.toLowerCase(); }
-			
-			/* Push the element to array if it matches */
+			tagText = linkElements[el].innerHTML ? linkElements[el].innerHTML.toLowerCase() : '';
+
+			/* Push the element to matching array if it matches */
 			if(pattern.test(tagText)){
 				matchingElements.push(linkElements[el]);
 			}
