@@ -115,8 +115,12 @@ document.onkeydown= function(e) {
 
 	/* escape or backspace */
 	else if((e.keyCode==27 || e.keyCode==8) && active){
-		resetAll();
-		return false; /* overrides brower's default behavior for these keys */
+		/* only override browser default action if user entered text */
+		if(searchText.length>0){
+			resetAll();
+			return false;
+		}
+		
 	}
 	/* arrow right */
 	else if(e.keyCode==39 && active){
@@ -127,6 +131,7 @@ document.onkeydown= function(e) {
 			targetCounter++;
 		}
 		targetElement = matchingElements[targetCounter];
+		shiftHighlight(targetElement);
 		return false; /* overrides brower's default behavior for these keys */
 	}
 	/* arrow left */
@@ -138,6 +143,7 @@ document.onkeydown= function(e) {
 			targetCounter = matchingElements.length-1;
 		}
 		targetElement = matchingElements[targetCounter];
+		shiftHighlight(targetElement);
 		return false; /* overrides brower's default behavior for these keys */
 	}
 
@@ -193,7 +199,7 @@ document.onkeypress= function(e) {
 			highlight.style.visibility = 'hidden';
 		}
 
-
+		return false; /* overrides brower's default behavior for these keys */
 
 	}
 }
