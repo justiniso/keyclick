@@ -29,6 +29,7 @@ highlight.style.visibility = 'hidden';
 
 document.body.appendChild(helper);
 helper.style.position = 'fixed';
+helper.style.height = '15px';
 helper.style.left = '10px';
 helper.style.top = '5px';
 helper.style.border = '1px solid #d5d5d5';
@@ -134,7 +135,7 @@ document.onkeypress= function(e) {
 	}
 
 	/* Non-tilda character pressed */
-	else if(e.charCode!=192 && active) {
+	else if(e.charCode!=96 && active) {		/* NOTE: tilda registers charCode 96, keyCode 192	*/
 		matchingElements = [];
 		searchText = searchText+String.fromCharCode(e.charCode);
 		pattern = new RegExp(searchText, 'i');
@@ -147,7 +148,7 @@ document.onkeypress= function(e) {
 			tagText = linkElements[el].innerHTML;
 			if(tagText){ tagText.toLowerCase(); }
 			
-			/* If search string is in tag string */
+			/* Push the element to array if it matches */
 			if(pattern.test(tagText)){
 				matchingElements.push(linkElements[el]);
 			}
