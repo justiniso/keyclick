@@ -110,11 +110,13 @@ document.onkeydown= function(e) {
 			presses = 1;
 			presses = setTimeout('presses=0;', 300);
 		}
+		return false; /* overrides brower's default behavior for these keys */
 	}
 
 	/* escape or backspace */
-	else if(e.keyCode==27 || e.keyCode==8){
+	else if((e.keyCode==27 || e.keyCode==8) && active){
 		resetAll();
+		return false; /* overrides brower's default behavior for these keys */
 	}
 	/* arrow right */
 	else if(e.keyCode==39 && active){
@@ -125,6 +127,7 @@ document.onkeydown= function(e) {
 			targetCounter++;
 		}
 		targetElement = matchingElements[targetCounter];
+		return false; /* overrides brower's default behavior for these keys */
 	}
 	/* arrow left */
 	else if(e.keyCode==37 && active){
@@ -135,6 +138,7 @@ document.onkeydown= function(e) {
 			targetCounter = matchingElements.length-1;
 		}
 		targetElement = matchingElements[targetCounter];
+		return false; /* overrides brower's default behavior for these keys */
 	}
 
 	try {
