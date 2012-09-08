@@ -1,5 +1,5 @@
 
-var active = true;
+var active = false;
 var presses = 0;
 var searchText = "";
 var inputElements = document.getElementsByTagName('input');
@@ -13,6 +13,7 @@ var tagText = "";
 var pattern;
 var highlight = document.createElement('div');
 var helper = document.createElement('span');
+var helperBar = document.createElement('div');
 
 document.body.appendChild(highlight);
 highlight.style.width = '10px';
@@ -37,6 +38,18 @@ helper.style.backgroundColor = '#ffffff';
 helper.style.fontSize = '16px';
 helper.style.zIndex = '2147483647';
 
+document.body.appendChild(helperBar);
+helperBar.style.width = '100%';
+helperBar.style.height = '25px';
+helperBar.style.top = '0px';
+helperBar.style.position = 'fixed';
+helperBar.style.border = '1px solid #c5c5c5';
+helperBar.style.backgroundColor = 'rgb(225, 200, 135)';
+helperBar.style.opacity = '0.6';
+helperBar.style.MozOpacity = '0.6';
+helperBar.style.zIndex = '2147483646';
+helperBar.style.visibility = 'hidden';
+
 function resetAll() {
 	searchText = '';
 	tagText = '';
@@ -44,6 +57,7 @@ function resetAll() {
 	targetElement = null;
 	targetCounter = 0;
 	highlight.style.visibility = 'hidden';
+	helperBar.style.visibility = 'hidden';
 	helper.innerHTML = '';
 }
 
@@ -103,6 +117,7 @@ document.onkeydown= function(e) {
 			}
 			/*	activate if deactivated	*/
 			else {
+				helperBar.style.visibility = 'visible';
 				active = true;
 			}
 		}
@@ -120,7 +135,6 @@ document.onkeydown= function(e) {
 			resetAll();
 			return false;
 		}
-		
 	}
 	/* arrow right */
 	else if(e.keyCode==39 && active){
