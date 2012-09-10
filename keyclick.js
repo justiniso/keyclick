@@ -61,7 +61,7 @@ var keyclick = {
 			}
 		} else {
 			this.activationKeyPresses = 1;
-			this.activationKeyPresses = setTimeout('presses=0;', 300);
+			setTimeout('this.activationKeyPresses=0;', 300);
 		}
 	},
 
@@ -77,6 +77,14 @@ var keyclick = {
 		highlight.style.visibility = 'hidden';
 	},
 
+	resetHighlight: function() {
+		highlight.style.top = '0px';
+		highlight.style.left = '0px';
+		highlight.style.width = '0px';
+		highlight.style.height = '0px';
+		highlight.style.visibility = '0px';
+	},
+
 	resetSearchText: function(){
 		this.searchText = '';
 		this.matchingElements = '';
@@ -88,14 +96,55 @@ var keyclick = {
 
 	resetAll: function(){
 		this.resetSearchText();
+		this.resetHighlight();
 		this.deactivate();
 	},
 
-	updateAll: function(){
+	updateSearchText: function(keycode) {
+		this.searchText += String.fromCharCode(keycode);
+		this.searchText = this.searchText.toLowerCase();
+	},
 
+	updateMatchingElements: function() {
+		var pattern = new RegExp(this.searchText, 'i');	// case insensitive search pattern
+
+		this.matchingElements = [];	// reset matching elements
+
+		// Add all elements with matching text to matching elements array
+		for(el in linkElements){
+			var testElement = linkElements[el];
+			var testText = testElement.innerHTML || '';
+
+			// Push the element to matching array if it matches
+			if(pattern.test(testText)){
+				this.matchingElements.push(testElement);
+			}
+		}
+	},
+
+	// set target element to the index in matchingElements array
+	updateTargetElement: function() {
+		var i = this.targetElement.index;
+
+		this.resetHighlight();
+
+		// Set target element to first matching element, if any
+		if(this.matchingElements.length > 0) {
+			this.targetElement.node = this.matchingElements[i]; 
+			this.shiftHighlightTo(this.targetElement.node);
+			highlight.style.visibility = 'visible';
+		} else {
+			this.targetElement.node = null;
+			highlight.style.visibility = 'hidden';
+		}
+
+		helper.innerHTML = this.searchText;
 	},
 
 	clickCurrentTarget: function(){
+		this.resetSearchText();
+		this.resetHighlight();
+
 		if(this.targetElement.node){
 			this.targetElement.node.click();
 		} else {
@@ -106,10 +155,10 @@ var keyclick = {
 	goToNextMatch: function(){
 		var i = this.targetElement.index;
 
-		if(i > keyclick.matchingElements.length-1){
+		if(i >= keyclick.matchingElements.length-1){
 			i = 0;
 		} else {
-			i++
+			i++;
 		}
 
 		this.targetElement.index = i;
@@ -131,9 +180,30 @@ var keyclick = {
 		this.shiftHighlightTo(this.targetElement.node);
 	},
 
+	findPositionOf: function(node){
+		var curtop = 0;
+		var curleft = 0;
+		var curtopscroll = 0;
+		var curleftscroll = 0;
+		var pos = {
+			'top': 0,
+			'left': 0
+		};
+		if(node && node.offsetParent){
+			do {
+				curtop += node.offsetTop;
+				curleft += node.offsetLeft;
+			} while (node = node.offsetParent);
+
+			pos.top = curtop-curtopscroll;
+			pos.left = curleft-curleftscroll;
+		}
+		return pos;
+	},
+
 	shiftHighlightTo: function(target){
 		if(target){
-			var elPos = findPosition(target);
+			var elPos = this.findPositionOf(target);
 			var elTop = elPos['top'].toString()+'px';
 			var elLeft = elPos['left'].toString()+'px';
 
@@ -141,9 +211,12 @@ var keyclick = {
 			highlight.style.left = elLeft;
 			highlight.style.width = target.offsetWidth.toString()+'px';
 			highlight.style.height = target.offsetHeight.toString()+'px';
+			highlight.style.visibility = 'visible';
 
 			// scroll window to that element
 			window.scrollTo(parseInt(elLeft)-100, parseInt(elTop)-100);
+		} else {
+			highlight.style.visibility = 'hidden';
 		}
 	},
 
@@ -167,6 +240,7 @@ var keyclick = {
 		helper.style.top = '5px';
 		helper.style.border = '1px solid #d5d5d5';
 		helper.style.backgroundColor = '#ffffff';
+		helper.style.fontFamily = 'Arial';
 		helper.style.fontSize = '16px';
 		helper.style.zIndex = '2147483647';
 
@@ -273,55 +347,10 @@ document.onkeydown= function(e) {
 
 	// Non-activation character pressed; match element to search text
 	else if(e.keyCode!=activationKeycode && keyclick.active) {	
-		var pattern;
-
-		keyclick.matchingElements = [];	// reset matching elements
-		keyclick.searchText += String.fromCharCode(e.keyCode);
-		keyclick.searchText = keyclick.searchText.toLowerCase();
-
-		pattern = new RegExp(keyclick.searchText, 'i');	// case insensitive search pattern
-
-
-		// Add all elements with matching text to matching elements array
-		for(el in linkElements){
-			var testElement = linkElements[el];
-			var text = testElement.innerHTML || '';
-
-			// Push the element to matching array if it matches
-			if(pattern.test(text)){
-				keyclick.matchingElements.push(testElement);
-			}
-		}
-
-		// Set target element to first matching element, if any
-		if(keyclick.matchingElements.length > 0) {
-			var i = keyclick.targetElement.index;
-			var firstMatchingElement = keyclick.matchingElements[i];
-
-			keyclick.targetElement.node = firstMatchingElement; 
-			shiftHighlight(keyclick.targetElement.node);
-		} else {
-			keyclick.targetElement.node = null;
-			highlight.style.visibility = 'hidden';
-		}
-
-		helper.innerHTML = keyclick.searchText;
-		highlight.style.visibility = 'visible';
-
+		keyclick.updateSearchText(e.keyCode);
+		keyclick.updateMatchingElements();
+		keyclick.updateTargetElement();
 		return false; /* overrides brower's default behavior for these keys */
-
 	}
-
-	// shift to the target element
-	try {
-		keyclick.targetElement.node = keyclick.matchingElements[ keyclick.targetElement.index ];
-		shiftHighlight(keyclick.targetElement.node);
-	} catch(err){
-		console.log(err.message);
-	}
-
-	console.log(keyclick.matchingElements);
-	console.log(keyclick.targetElement.node);
-	console.log(keyclick.targetElement.index);
-}
+};
 
