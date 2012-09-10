@@ -21,6 +21,7 @@ var highlight = document.createElement('div');
 var keyclick = {
 
 	active: false,
+	activationKeyPresses: 0,
 	searchText: '',
 	matchingElements: [],
 	targetElement: {
@@ -51,6 +52,19 @@ var keyclick = {
 		this.hideUI();
 	},
 
+	listenForActivationKey: function() {
+		if(this.activationKeyPresses!=0){	// activation key pressed already
+			if(this.active){
+				this.deactivate();	
+			} else {
+				this.activate();	
+			}
+		} else {
+			this.activationKeyPresses = 1;
+			this.activationKeyPresses = setTimeout('presses=0;', 300);
+		}
+	},
+
 	showUI: function(){
 		helper.style.visibility = 'visible';
 		helperBar.style.visibility = 'visible';
@@ -79,6 +93,58 @@ var keyclick = {
 
 	updateAll: function(){
 
+	},
+
+	clickCurrentTarget: function(){
+		if(this.targetElement.node){
+			this.targetElement.node.click();
+		} else {
+			alert('No elements found');
+		}
+	},
+
+	goToNextMatch: function(){
+		var i = this.targetElement.index;
+
+		if(i > keyclick.matchingElements.length-1){
+			i = 0;
+		} else {
+			i++
+		}
+
+		this.targetElement.index = i;
+		this.targetElement.node = this.matchingElements[i];
+		this.shiftHighlightTo(this.targetElement.node);
+	},
+
+	goToPreviousMatch: function(){
+		var i = this.targetElement.index;
+
+		if(i > 0){
+			i--; 
+		} else {
+			this.matchingElements.length-1;
+		}
+
+		this.targetElement.index = i;
+		this.targetElement.node = this.matchingElements[i];
+		this.shiftHighlightTo(this.targetElement.node);
+	},
+
+	shiftHighlightTo: function(target){
+		if(target){
+			var elPos = findPosition(target);
+			var elTop = elPos['top'].toString()+'px';
+			var elLeft = elPos['left'].toString()+'px';
+
+			highlight.style.top = elTop;
+			highlight.style.left = elLeft;
+			highlight.style.width = target.offsetWidth.toString()+'px';
+			highlight.style.height = target.offsetHeight.toString()+'px';
+
+			// scroll window to that element
+			window.scrollTo(parseInt(elLeft)-100, parseInt(elTop)-100);
+		}
 	},
 
 	initElements: function() {
@@ -176,16 +242,7 @@ document.onkeydown= function(e) {
 	
 	// activation keycode double-tapped
 	if(e.keyCode==activationKeycode){
-		if(presses!=0){	// activation key pressed already
-			if(keyclick.active){
-				keyclick.deactivate();	
-			} else {
-				keyclick.activate();	
-			}
-		} else {
-			presses = 1;
-			presses = setTimeout('presses=0;', 300);
-		}
+		keyclick.listenForActivationKey();
 		return false;
 	}
 
@@ -195,63 +252,32 @@ document.onkeydown= function(e) {
 		return false;
 	}
 
-	// arrow right or arrow down
-	else if(keyclick.active && 
-		(e.keyCode==39 || e.keyCode==40) || 
-		(e.keyCode==37 || e.keyCode==38) ) {
-		
-		var i = keyclick.targetElement.index;
-
-		switch(e.keyCode){
-
-			case(39 || 40):  // right or down arrow key
-				// set index to 0 if it exceeds matching elements array range, otherwise increment
-				i = (i > keyclick.matchingElements.length-1) ? 0 : i+1;
-
-			case(37 || 38):  // up or left arrow key
-				// set index to highest index in matching elements array if lower bound hit, otherwise decrement
-				i = (i > 1) ? i-1 : keyclick.matchingElements.length-1;
-		}
-
-		keyclick.targetElement.index = i;
-
+	// enter
+	else if(e.keyCode==13 && keyclick.active){
+		keyclick.clickCurrentTarget();
+		keyclick.resetSearchText();
 		return false;
 	}
 
-	// shift to the target element
-	try {
-		keyclick.targetElement.node = keyclick.matchingElements[ keyclick.targetElement.index ];
-		shiftHighlight(keyclick.targetElement.node);
-	} catch(err){
-		alert(err.message);
+	// arrow right or arrow down
+	else if((e.keyCode==39 || e.keyCode==40) && keyclick.active) {
+		keyclick.goToNextMatch();
+		return false;
 	}
 
-	console.log(keyclick.matchingElements);
-	console.log(keyclick.targetElement.node);
-	console.log(keyclick.targetElement.index);
-}
-
-document.onkeypress= function(e) {
-
-	/* Enter is pressed */
-	if(e.charCode==13 && keyclick.active){
-		var target = keyclick.targetElement.node;
-
-		if(target){
-			target.click();
-		} else {
-			alert('no links found');
-		}
-
-		keyclick.resetAll();
+	// arrow left or arrow up
+	else if((e.keyCode==37 || e.keyCode==38) && keyclick.active) {
+		keyclick.goToPreviousMatch();
+		return false;
 	}
 
 	// Non-activation character pressed; match element to search text
-	else if(e.charCode!=activationKeycode && keyclick.active) {	
+	else if(e.keyCode!=activationKeycode && keyclick.active) {	
 		var pattern;
 
 		keyclick.matchingElements = [];	// reset matching elements
-		keyclick.searchText += String.fromCharCode(e.charCode);
+		keyclick.searchText += String.fromCharCode(e.keyCode);
+		keyclick.searchText = keyclick.searchText.toLowerCase();
 
 		pattern = new RegExp(keyclick.searchText, 'i');	// case insensitive search pattern
 
@@ -259,7 +285,7 @@ document.onkeypress= function(e) {
 		// Add all elements with matching text to matching elements array
 		for(el in linkElements){
 			var testElement = linkElements[el];
-			var text = testElement.innerHTML ? testElement.innerHTML.toLowerCase() : '';
+			var text = testElement.innerHTML || '';
 
 			// Push the element to matching array if it matches
 			if(pattern.test(text)){
@@ -286,5 +312,16 @@ document.onkeypress= function(e) {
 
 	}
 
-	console.log('next');
+	// shift to the target element
+	try {
+		keyclick.targetElement.node = keyclick.matchingElements[ keyclick.targetElement.index ];
+		shiftHighlight(keyclick.targetElement.node);
+	} catch(err){
+		console.log(err.message);
+	}
+
+	console.log(keyclick.matchingElements);
+	console.log(keyclick.targetElement.node);
+	console.log(keyclick.targetElement.index);
 }
+
