@@ -12,16 +12,23 @@ var targetTop = 0;
 var tagText = "";
 var activationKeycode = 192;	// tilda (192)
 
+var errorColor = 'rgb(225, 72, 58)';  // red
+var activeColor = 'rgb(225, 200, 135)';  // yellow
+// var activeColor = 'rgb(45,125,168)';  // blue
+
 
 var helper = document.createElement('span');
 var helperBar = document.createElement('div');
 var highlight = document.createElement('div');
+var message = document.createElement('span');
 
 
 var keyclick = {
 
 	active: false,
 	activationKeyPresses: 0,
+	message: '',
+	error: false,
 	searchText: '',
 	matchingElements: [],
 	targetElement: {
@@ -66,15 +73,24 @@ var keyclick = {
 	},
 
 	showUI: function(){
+		this.updateUI();  // handles highlight visibility
 		helper.style.visibility = 'visible';
 		helperBar.style.visibility = 'visible';
-		highlight.style.visibility = 'visible';
+		message.style.visibility = 'visible';
 	},
 
 	hideUI: function(){
 		helper.style.visibility = 'hidden';
 		helperBar.style.visibility = 'hidden';
 		highlight.style.visibility = 'hidden';
+		message.style.visibility = 'hidden';
+	},
+
+	updateUI: function(){
+		helper.innerHTML = this.searchText;
+		message.innerHTML = this.message;
+		helperBar.style.backgroundColor = this.error ? errorColor : activeColor;
+		highlight.style.visibility = this.targetElement.node ? 'visible' : 'hidden';
 	},
 
 	resetHighlight: function() {
@@ -87,11 +103,15 @@ var keyclick = {
 
 	resetSearchText: function(){
 		this.searchText = '';
-		this.matchingElements = '';
+		this.message = '';
+		this.targetElement.node = null;
+		this.matchingElements = [];
 
 		// UI
 		helper.innerHTML = '';
-		highlight.style.visibility = 'hidden';
+		helperBar.style.backgroundColor = activeColor;
+		this.error = false;
+		this.updateUI();
 	},
 
 	resetAll: function(){
@@ -107,6 +127,7 @@ var keyclick = {
 
 	updateMatchingElements: function() {
 		var pattern = new RegExp(this.searchText, 'i');	// case insensitive search pattern
+		var i = this.targetElement.index;
 
 		this.matchingElements = [];	// reset matching elements
 
@@ -120,6 +141,14 @@ var keyclick = {
 				this.matchingElements.push(testElement);
 			}
 		}
+
+		// prevent out of range exceptions on matchingElements
+		if(i > this.matchingElements.length-1){
+			this.targetElement.index = 0;
+		}
+
+		this.message = this.matchingElements.length+' matches';
+		this.updateUI();
 	},
 
 	// set target element to the index in matchingElements array
@@ -130,26 +159,32 @@ var keyclick = {
 
 		// Set target element to first matching element, if any
 		if(this.matchingElements.length > 0) {
+			this.error = false;
 			this.targetElement.node = this.matchingElements[i]; 
 			this.shiftHighlightTo(this.targetElement.node);
-			highlight.style.visibility = 'visible';
 		} else {
+			this.error = true;
+			this.message = 'No matching links';
 			this.targetElement.node = null;
-			highlight.style.visibility = 'hidden';
 		}
 
-		helper.innerHTML = this.searchText;
+		this.updateUI();
 	},
 
 	clickCurrentTarget: function(){
-		this.resetSearchText();
-		this.resetHighlight();
-
 		if(this.targetElement.node){
 			this.targetElement.node.click();
+			this.resetAll();
+			this.error = false;
+			this.message = '';
 		} else {
-			alert('No elements found');
+			this.resetSearchText();
+			this.resetHighlight();
+			this.error = true;
+			this.message = 'No elements found';
 		}
+
+		this.updateUI();
 	},
 
 	goToNextMatch: function(){
@@ -242,18 +277,31 @@ var keyclick = {
 		helper.style.backgroundColor = '#ffffff';
 		helper.style.fontFamily = 'Arial';
 		helper.style.fontSize = '16px';
+		helper.style.padding = '3px';
 		helper.style.zIndex = '2147483647';
 
 		document.body.appendChild(helperBar);
-		helperBar.style.width = '100%';
-		helperBar.style.height = '25px';
+		helperBar.style.width = '200px';
+		helperBar.style.height = '60px';
 		helperBar.style.top = '0px';
 		helperBar.style.position = 'fixed';
 		helperBar.style.border = '1px solid #c5c5c5';
-		helperBar.style.backgroundColor = 'rgb(225, 200, 135)';
-		helperBar.style.opacity = '0.6';
-		helperBar.style.MozOpacity = '0.6';
+		helperBar.style.borderRadius = '10px';
+		helperBar.style.backgroundColor = activeColor;
+		helperBar.style.opacity = '0.9';
+		helperBar.style.MozOpacity = '0.9';
 		helperBar.style.zIndex = '2147483646'; // one less than highlight and helper
+
+		document.body.appendChild(message);
+		message.style.fontSize = '16px';
+		message.style.fontFamily = 'Arial';
+		message.style.left = '10px';
+		message.style.top = '35px';
+		message.style.position = 'fixed';
+		// message.style.backgroundColor = 'rgb(250,250,250)';
+		// message.style.padding = '3px';
+		message.style.zIndex = '2147483647';
+		message.style.visibility = 'hidden';
 
 	}
 };
@@ -317,7 +365,7 @@ document.onkeydown= function(e) {
 	// activation keycode double-tapped
 	if(e.keyCode==activationKeycode){
 		keyclick.listenForActivationKey();
-		return false;
+		// return false;
 	}
 
 	// escape or backspace
