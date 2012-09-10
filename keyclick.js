@@ -186,7 +186,7 @@ document.onkeydown= function(e) {
 			presses = 1;
 			presses = setTimeout('presses=0;', 300);
 		}
-		return false; /* overrides brower's default behavior for these keys */
+		return false;
 	}
 
 	// escape or backspace
@@ -195,29 +195,22 @@ document.onkeydown= function(e) {
 		return false;
 	}
 
-	// arrow right
-	else if(e.keyCode==39 && keyclick.active){
+	// arrow right or arrow down
+	else if(keyclick.active && 
+		(e.keyCode==39 || e.keyCode==40) || 
+		(e.keyCode==37 || e.keyCode==38) ) {
+		
 		var i = keyclick.targetElement.index;
 
-		if(i > keyclick.matchingElements.length+1){
-			i = 0;
-		} else {
-			i++;
-		}
+		switch(e.keyCode){
 
-		keyclick.targetElement.index = i;
+			case(39 || 40):  // right or down arrow key
+				// set index to 0 if it exceeds matching elements array range, otherwise increment
+				i = (i > keyclick.matchingElements.length-1) ? 0 : i+1;
 
-		return false;
-	}
-
-	// arrow left
-	else if(e.keyCode==37 && keyclick.active){
-		var i = keyclick.matchingElements.index;
-
-		if(i > 1){
-			i--;
-		} else {
-			i = matchingElements.length-1;
+			case(37 || 38):  // up or left arrow key
+				// set index to highest index in matching elements array if lower bound hit, otherwise decrement
+				i = (i > 1) ? i-1 : keyclick.matchingElements.length-1;
 		}
 
 		keyclick.targetElement.index = i;
@@ -232,6 +225,10 @@ document.onkeydown= function(e) {
 	} catch(err){
 		alert(err.message);
 	}
+
+	console.log(keyclick.matchingElements);
+	console.log(keyclick.targetElement.node);
+	console.log(keyclick.targetElement.index);
 }
 
 document.onkeypress= function(e) {
@@ -288,4 +285,6 @@ document.onkeypress= function(e) {
 		return false; /* overrides brower's default behavior for these keys */
 
 	}
+
+	console.log('next');
 }
