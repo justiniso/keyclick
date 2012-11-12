@@ -414,10 +414,17 @@ document.onkeydown= function(e) {
 
 	// Non-activation character pressed; match element to search text
 	else if(e.keyCode!=activationKeycode && keyclick.active) {	
-		keyclick.updateSearchText(e.keyCode);
-		keyclick.updateMatchingElements();
-		keyclick.updateTargetElement();
-		return false; /* overrides brower's default behavior for these keys */
+		// checks for only alphanumeric characters
+		if(/[A-Za-z0-9 ]/.test(String.fromCharCode(e.keyCode))){
+			keyclick.updateSearchText(e.keyCode);
+			keyclick.updateMatchingElements();
+			keyclick.updateTargetElement();
+			return false; /* overrides brower's default behavior for these keys */
+		} else {
+			// do nothing
+		}
+
+		
 	}
 };
 
