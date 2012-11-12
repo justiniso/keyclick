@@ -2,8 +2,7 @@
 //var active = false;
 var presses = 0;
 var searchText = "";
-var inputElements = document.getElementsByTagName('input');
-var linkElements = document.getElementsByTagName('a');
+var linkElements = document.querySelectorAll('a, input[type="button"], button');
 var matchingElements = [];
 var targetCounter = 0;
 var targetElement;
@@ -298,6 +297,7 @@ var keyclick = {
 		helper.style.height = '15px';
 		// helper.style.left = '10px';
 		// helper.style.top = '5px';
+		helper.style.textAlign = 'left';
 		helper.style.border = '1px solid #d5d5d5';
 		helper.style.backgroundColor = '#ffffff';
 		helper.style.fontFamily = 'Arial';
